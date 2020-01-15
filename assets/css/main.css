@@ -3880,3 +3880,15 @@ input, select, textarea {
 		}
 
 	}
+
+	.project-link {
+		position: relative;
+		list-style: none;
+		transition: 0.3s;
+	}
+
+	.project-link:hover {
+		bottom: 1px;
+		border-bottom: 1px solid black;
+		text-underline-position: below;
+	}
