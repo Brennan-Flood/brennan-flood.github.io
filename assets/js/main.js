@@ -1,23 +1,25 @@
 /*
-	Paradigm Shift by HTML5 UP
+	Astral by HTML5 UP
 	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
 (function($) {
 
-	var	$window = $(window),
-		$body = $('body');
+	var $window = $(window),
+		$body = $('body'),
+		$wrapper = $('#wrapper'),
+		$main = $('#main'),
+		$panels = $main.children('.panel'),
+		$nav = $('#nav'), $nav_links = $nav.children('a');
 
 	// Breakpoints.
 		breakpoints({
-			default:   ['1681px',   null       ],
-			xlarge:    ['1281px',   '1680px'   ],
-			large:     ['981px',    '1280px'   ],
-			medium:    ['737px',    '980px'    ],
-			small:     ['481px',    '736px'    ],
-			xsmall:    ['361px',    '480px'    ],
-			xxsmall:   [null,       '360px'    ]
+			xlarge:  [ '1281px',  '1680px' ],
+			large:   [ '981px',   '1280px' ],
+			medium:  [ '737px',   '980px'  ],
+			small:   [ '361px',   '736px'  ],
+			xsmall:  [ null,      '360px'  ]
 		});
 
 	// Play initial animations on page load.
@@ -27,182 +29,184 @@
 			}, 100);
 		});
 
-	// Hack: Enable IE workarounds.
-		if (browser.name == 'ie')
-			$body.addClass('is-ie');
+	// Nav.
+		$nav_links
+			.on('click', function(event) {
 
-	// Mobile?
-		if (browser.mobile)
-			$body.addClass('is-mobile');
+				var href = $(this).attr('href');
 
-	// Scrolly.
-		$('.scrolly')
-			.scrolly({
-				offset: 100
-			});
-
-	// Polyfill: Object fit.
-		if (!browser.canUse('object-fit')) {
-
-			$('.image[data-position]').each(function() {
-
-				var $this = $(this),
-					$img = $this.children('img');
-
-				// Apply img as background.
-					$this
-						.css('background-image', 'url("' + $img.attr('src') + '")')
-						.css('background-position', $this.data('position'))
-						.css('background-size', 'cover')
-						.css('background-repeat', 'no-repeat');
-
-				// Hide img.
-					$img
-						.css('opacity', '0');
-
-			});
-
-			$('.gallery > a').each(function() {
-
-				var $this = $(this),
-					$img = $this.children('img');
-
-				// Apply img as background.
-					$this
-						.css('background-image', 'url("' + $img.attr('src') + '")')
-						.css('background-position', 'center')
-						.css('background-size', 'cover')
-						.css('background-repeat', 'no-repeat');
-
-				// Hide img.
-					$img
-						.css('opacity', '0');
-
-			});
-
-		}
-
-	// Gallery.
-		$('.gallery')
-			.on('click', 'a', function(event) {
-
-				var $a = $(this),
-					$gallery = $a.parents('.gallery'),
-					$modal = $gallery.children('.modal'),
-					$modalImg = $modal.find('img'),
-					href = $a.attr('href');
-
-				// Not an image? Bail.
-					if (!href.match(/\.(jpg|gif|png|mp4)$/))
+				// Not a panel link? Bail.
+					if (href.charAt(0) != '#'
+					||	$panels.filter(href).length == 0)
 						return;
 
 				// Prevent default.
 					event.preventDefault();
 					event.stopPropagation();
 
-				// Locked? Bail.
-					if ($modal[0]._locked)
-						return;
+				// Change panels.
+					if (window.location.hash != href)
+						window.location.hash = href;
 
-				// Lock.
-					$modal[0]._locked = true;
+			});
 
-				// Set src.
-					$modalImg.attr('src', href);
+	// Panels.
 
-				// Set visible.
-					$modal.addClass('visible');
+		// Initialize.
+			(function() {
 
-				// Focus.
-					$modal.focus();
+				var $panel, $link;
+
+				// Get panel, link.
+					if (window.location.hash) {
+
+				 		$panel = $panels.filter(window.location.hash);
+						$link = $nav_links.filter('[href="' + window.location.hash + '"]');
+
+					}
+
+				// No panel/link? Default to first.
+					if (!$panel
+					||	$panel.length == 0) {
+
+						$panel = $panels.first();
+						$link = $nav_links.first();
+
+					}
+
+				// Deactivate all panels except this one.
+					$panels.not($panel)
+						.addClass('inactive')
+						.hide();
+
+				// Activate link.
+					$link
+						.addClass('active');
+
+				// Reset scroll.
+					$window.scrollTop(0);
+
+			})();
+
+		// Hashchange event.
+			$window.on('hashchange', function(event) {
+
+				var $panel, $link;
+
+				// Get panel, link.
+					if (window.location.hash) {
+
+				 		$panel = $panels.filter(window.location.hash);
+						$link = $nav_links.filter('[href="' + window.location.hash + '"]');
+
+						// No target panel? Bail.
+							if ($panel.length == 0)
+								return;
+
+					}
+
+				// No panel/link? Default to first.
+					else {
+
+						$panel = $panels.first();
+						$link = $nav_links.first();
+
+					}
+
+				// Deactivate all panels.
+					$panels.addClass('inactive');
+
+				// Deactivate all links.
+					$nav_links.removeClass('active');
+
+				// Activate target link.
+					$link.addClass('active');
+
+				// Set max/min height.
+					$main
+						.css('max-height', $main.height() + 'px')
+						.css('min-height', $main.height() + 'px');
 
 				// Delay.
 					setTimeout(function() {
 
-						// Unlock.
-							$modal[0]._locked = false;
+						// Hide all panels.
+							$panels.hide();
 
-					}, 600);
+						// Show target panel.
+							$panel.show();
 
-			})
-			.on('click', '.modal', function(event) {
+						// Set new max/min height.
+							$main
+								.css('max-height', $panel.outerHeight() + 'px')
+								.css('min-height', $panel.outerHeight() + 'px');
 
-				var $modal = $(this),
-					$modalImg = $modal.find('img');
+						// Reset scroll.
+							$window.scrollTop(0);
 
-				// Locked? Bail.
-					if ($modal[0]._locked)
-						return;
+						// Delay.
+							window.setTimeout(function() {
 
-				// Already hidden? Bail.
-					if (!$modal.hasClass('visible'))
-						return;
+								// Activate target panel.
+									$panel.removeClass('inactive');
 
-				// Stop propagation.
-					event.stopPropagation();
+								// Clear max/min height.
+									$main
+										.css('max-height', '')
+										.css('min-height', '');
 
-				// Lock.
-					$modal[0]._locked = true;
+								// IE: Refresh.
+									$window.triggerHandler('--refresh');
 
-				// Clear visible, loaded.
-					$modal
-						.removeClass('loaded')
+								// Unlock.
+									locked = false;
 
-				// Delay.
-					setTimeout(function() {
+							}, (breakpoints.active('small') ? 0 : 500));
 
-						$modal
-							.removeClass('visible')
+					}, 250);
 
-						setTimeout(function() {
+			});
 
-							// Clear src.
-								$modalImg.attr('src', '');
+	// IE: Fixes.
+		if (browser.name == 'ie') {
 
-							// Unlock.
-								$modal[0]._locked = false;
+			// Fix min-height/flexbox.
+				$window.on('--refresh', function() {
 
-							// Focus.
-								$body.focus();
+					$wrapper.css('height', 'auto');
 
-						}, 475);
+					window.setTimeout(function() {
 
-					}, 125);
+						var h = $wrapper.height(),
+							wh = $window.height();
 
-			})
-			.on('keypress', '.modal', function(event) {
+						if (h < wh)
+							$wrapper.css('height', '100vh');
 
-				var $modal = $(this);
+					}, 0);
 
-				// Escape? Hide modal.
-					if (event.keyCode == 27)
-						$modal.trigger('click');
+				});
 
-			})
-			.on('mouseup mousedown mousemove', '.modal', function(event) {
+				$window.on('resize load', function() {
+					$window.triggerHandler('--refresh');
+				});
 
-				// Stop propagation.
-					event.stopPropagation();
+			// Fix intro pic.
+				$('.panel.intro').each(function() {
 
-			})
-			.prepend('<div class="modal" tabIndex="-1"><div class="inner"><img src="" /></div></div>')
-				.find('img')
-					.on('load', function(event) {
+					var $pic = $(this).children('.pic'),
+						$img = $pic.children('img');
 
-						var $modalImg = $(this),
-							$modal = $modalImg.parents('.modal');
+					$pic
+						.css('background-image', 'url(' + $img.attr('src') + ')')
+						.css('background-size', 'cover')
+						.css('background-position', 'center');
 
-						setTimeout(function() {
+					$img
+						.css('visibility', 'hidden');
 
-							// No longer visible? Bail.
-								if (!$modal.hasClass('visible'))
-									return;
+				});
 
-							// Set loaded.
-								$modal.addClass('loaded');
-
-						}, 275);
-
-					});
+		}
 
 })(jQuery);
